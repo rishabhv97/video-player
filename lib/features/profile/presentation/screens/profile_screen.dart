@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/widgets/custom_app_bar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -7,9 +6,12 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      appBar: CustomAppBar(showSearch: false),
+      backgroundColor: Colors.black,
       body: Center(
-        child: Text('Profile Settings Coming Soon'),
+        child: Text(
+          'Profile Screen Coming Soon',
+          style: TextStyle(color: Colors.white, fontSize: 18),
+        ),
       ),
     );
   }

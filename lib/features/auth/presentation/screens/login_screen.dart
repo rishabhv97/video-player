@@ -1,28 +1,98 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// Assuming your screens are located here based on your architecture structure
-import '../../../user/presentation/screens/user_main_screen.dart';
-import '../../../admin/presentation/screens/admin_main_screen.dart';
-import '../../../super_admin/presentation/screens/super_admin_main_screen.dart';
+// Update these imports to match your project's exact paths if your IDE doesn't auto-import them
+import '../../../../features/admin/presentation/screens/admin_main_screen.dart';
+import '../../../../features/user/presentation/screens/user_main_screen.dart';
+import '../../../../features/super_admin/presentation/screens/super_admin_main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final Dio _dio = Dio();
+  
   bool _isLoading = false;
+  String _errorMessage = '';
+  bool _obscurePassword = true;
 
-  // Initialize Dio and Secure Storage for API calls and token management
-  // Replace the baseUrl with your actual Cloudflare Worker URL later
-  final Dio _dio = Dio(BaseOptions(baseUrl: 'http://localhost:8787'));
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  Future _handleLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final response = await _dio.post(
+        'http://192.168.1.20:8787/auth/login',
+        data: {
+          'email': _emailController.text.trim(),
+          'password': _passwordController.text,
+        },
+      );
+
+      final data = response.data;
+      final String token = data['token'];
+      final String role = data['role'];
+      final String id = data['id'];
+
+      // Save credentials locally
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('jwt_token', token);
+      await prefs.setString('user_role', role);
+      await prefs.setString('user_id', id);
+
+      if (!mounted) return;
+
+      // Route the user based on their database role
+      Widget nextScreen;
+      switch (role.toLowerCase()) {
+        case 'admin':
+          nextScreen = const AdminMainScreen();
+          break;
+        case 'super_admin':
+          nextScreen = const SuperAdminMainScreen();
+          break;
+        case 'user':
+        default:
+          nextScreen = const UserMainScreen();
+          break;
+      }
+
+      // Navigate and remove the login screen from the back-history
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => nextScreen),
+      );
+
+    } on DioException catch (e) {
+      setState(() {
+        if (e.response?.statusCode == 401) {
+          _errorMessage = 'Invalid email or password';
+        } else {
+          _errorMessage = 'Connection error. Please try again.';
+        }
+      });
+    } catch (e) {
+      // Add this print statement!
+      print('LOGIN ERROR: $e'); 
+      
+      setState(() {
+        _errorMessage = 'An unexpected error occurred.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -31,131 +101,86 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// Handles the login process by calling the Cloudflare Worker API
-  Future<void> _handleLogin() async {
-    setState(() => _isLoading = true);
-
-    try {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
-
-      if (email.isEmpty || password.isEmpty) {
-        throw Exception('Please enter email and password');
-      }
-
-      // POST request to your Cloudflare Worker authentication endpoint
-      final response = await _dio.post('/auth/login', data: {
-        'email': email,
-        'password': password,
-      });
-
-      if (response.statusCode == 200) {
-        final token = response.data['token'];
-        final roleString = response.data['role']; // Expecting 'SUPER_ADMIN', 'ADMIN', or 'USER'
-
-        // Save token and role securely on the device
-        await _storage.write(key: 'jwt_token', value: token);
-        await _storage.write(key: 'user_role', value: roleString);
-
-        _routeUserBasedOnRole(roleString);
-      } else {
-        throw Exception('Authentication failed');
-      }
-
-    } on DioException catch (e) {
-      // Extract error message from API response if available
-      final errorMessage = e.response?.data['message'] ?? 'Network error occurred';
-      _showError(errorMessage);
-    } catch (e) {
-      _showError(e.toString());
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  /// Routes the user to the correct screen based on the role returned from the backend
-  void _routeUserBasedOnRole(String roleString) {
-    if (!mounted) return;
-
-    if (roleString == 'SUPER_ADMIN') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const SuperAdminMainScreen()),
-      );
-    } else if (roleString == 'ADMIN') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const AdminMainScreen()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const UserMainScreen()),
-      );
-    }
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.redAccent,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView( 
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.cloud_circle, size: 100, color: Colors.blue),
-              const SizedBox(height: 32),
-              const Text(
-                'My Cloud',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 48),
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Icon(Icons.video_library, size: 80, color: Colors.blue),
+                const SizedBox(height: 24),
+                const Text(
+                  'Welcome Back',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
+                const SizedBox(height: 40),
+                
+                // Email Field
+                TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: FilledButton(
-                  onPressed: _isLoading ? null : _handleLogin,
-                  child: _isLoading 
-                      ? const SizedBox(
-                          height: 24, 
-                          width: 24, 
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                        )
-                      : const Text('Login', style: TextStyle(fontSize: 18)),
+                const SizedBox(height: 16),
+                
+                // Password Field
+                TextField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                
+                // Error Message Display
+                if (_errorMessage.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Text(
+                      _errorMessage,
+                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                
+                // Login Button
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Login', style: TextStyle(fontSize: 18)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,68 +1,51 @@
 import 'package:flutter/material.dart';
+
+// Import the screens that will act as our tabs
 import 'user_home_screen.dart';
-import 'user_link_screen.dart';
-import 'user_history_screen.dart';
-import 'user_downloads_screen.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
 
 class UserMainScreen extends StatefulWidget {
   const UserMainScreen({super.key});
 
   @override
-  State<UserMainScreen> createState() => _UserMainScreenState();
+  State createState() => _UserMainScreenState();
 }
 
-class _UserMainScreenState extends State<UserMainScreen> {
-  int _currentIndex = 0;
+class _UserMainScreenState extends State {
+  int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
+  // The list of screens that the bottom nav will switch between
+  final List _screens = [
     const UserHomeScreen(),
-    const UserLinkScreen(),
-    const UserHistoryScreen(),
-    const UserDownloadsScreen(),
-    const ProfileScreen(),
+    const ProfileScreen(), // We will build this fully in the next step
   ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens,
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF4C44CF),
+        backgroundColor: Colors.black,
+        selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
+            icon: Icon(Icons.explore),
+            label: 'Discover',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.link_outlined),
-            activeIcon: Icon(Icons.link),
-            label: 'Link',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history_outlined),
-            activeIcon: Icon(Icons.history),
-            label: 'History',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.download_outlined),
-            activeIcon: Icon(Icons.download),
-            label: 'Downloads',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
+            icon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],
