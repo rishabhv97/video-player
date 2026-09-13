@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../../../../features/admin/presentation/screens/admin_main_screen.dart';
 import '../../../../features/user/presentation/screens/user_main_screen.dart';
@@ -37,7 +38,7 @@ class _SignupScreenState extends State {
     try {
       // IMPORTANT: Update this to your active hotspot IP
       final response = await _dio.post(
-        'http://10.126.62.70:8787/auth/signup',
+        '${dotenv.env['API_URL']}/auth/signup',
         data: {
           'email': _emailController.text.trim(),
           'password': _passwordController.text,

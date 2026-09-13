@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../../../../features/videos/presentation/screens/video_details_screen.dart';
 
@@ -49,7 +50,7 @@ class _UserHomeScreenState extends State {
   Future _fetchFeed() async {
     try {
       // IMPORTANT: Update this IP to your current hotspot IP!
-      final response = await _dio.get('http://10.126.62.70:8787/videos');
+      final response = await _dio.get('${dotenv.env['API_URL']}/videos');
       final List data = response.data;
       setState(() {
         _videos = data.map((json) => VideoItem.fromJson(json)).toList();
@@ -131,9 +132,10 @@ class _UserHomeScreenState extends State {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => VideoDetailsScreen(
+                                    videoId: video.id,
                                     videoUrl: video.videoUrl,
                                     title: video.title,
-                                    description: video.description,
+                                    description: video.description, 
                                   ),
                                 ),
                               );

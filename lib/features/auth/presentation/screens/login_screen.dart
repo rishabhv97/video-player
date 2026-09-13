@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'signup_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Update these imports to match your project's exact paths if your IDE doesn't auto-import them
 import '../../../../features/admin/presentation/screens/admin_main_screen.dart';
@@ -32,7 +33,7 @@ class _LoginScreenState extends State {
 
     try {
       final response = await _dio.post(
-        'http://10.126.62.70:8787/auth/login',
+        '${dotenv.env['API_URL']}/auth/login',
         data: {
           'email': _emailController.text.trim(),
           'password': _passwordController.text,

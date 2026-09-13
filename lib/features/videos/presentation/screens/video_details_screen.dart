@@ -1,42 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class VideoDetailsScreen extends StatefulWidget {
+  final String videoId; // ADDED: Need this to log history
   final String videoUrl;
   final String title;
   final String description;
 
   const VideoDetailsScreen({
     super.key,
+    required this.videoId,
     required this.videoUrl,
     required this.title,
     required this.description,
   });
 
   @override
-  State createState() => _VideoDetailsScreenState(videoUrl, title, description);
+  State<VideoDetailsScreen> createState() => _VideoDetailsScreenState();
 }
 
-class _VideoDetailsScreenState extends State {
-  final String localVideoUrl;
-  final String localTitle;
-  final String localDescription;
-
+class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
   late VideoPlayerController _controller;
   bool _isInitialized = false;
-
-  _VideoDetailsScreenState(this.localVideoUrl, this.localTitle, this.localDescription);
+  final Dio _dio = Dio();
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(localVideoUrl))
-      ..initialize().then((_) {
-        setState(() {
-          _isInitialized = true;
-        });
-        _controller.play(); 
+    _initPlayerAndLogHistory();
+  }
+
+  Future _initPlayerAndLogHistory() async {
+    // 1. Initialize Player
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
+    await _controller.initialize();
+    
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
       });
+      _controller.play();
+    }
+
+    // 2. Silently log to watch history
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id');
+      
+      if (userId != null) {
+        await _dio.post(
+          '${dotenv.env['API_URL']}/history/log',
+          data: {
+            'userId': userId,
+            'videoId': widget.videoId,
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint('Failed to log history: $e');
+    }
   }
 
   @override
@@ -48,7 +73,7 @@ class _VideoDetailsScreenState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Keep player background black
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -97,7 +122,6 @@ class _VideoDetailsScreenState extends State {
                   : Center(child: CircularProgressIndicator(color: Colors.blue[400])),
             ),
           ),
-          // White Details Section
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24.0),
@@ -111,7 +135,7 @@ class _VideoDetailsScreenState extends State {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    localTitle,
+                    widget.title,
                     style: const TextStyle(
                       color: Colors.black87,
                       fontSize: 22,
@@ -120,7 +144,7 @@ class _VideoDetailsScreenState extends State {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    localDescription,
+                    widget.description,
                     style: TextStyle(
                       color: Colors.grey[700],
                       fontSize: 16,

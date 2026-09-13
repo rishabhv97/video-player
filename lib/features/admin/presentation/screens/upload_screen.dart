@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UploadScreen extends StatefulWidget {
   const UploadScreen({
@@ -50,7 +51,7 @@ class _UploadScreenState extends State {
       String fileName = _selectedFile!.path.split('/').last;
 
       // Replace with your computer's actual local IP address (e.g., 192.168.1.X)
-      final String apiUrl = 'http://127.0.0.1:8787/videos/upload-init';
+      final String apiUrl = 'http://${dotenv.env['API_URL']}/videos/upload-init';
 
       final initResponse = await _dio.post(
         apiUrl,
@@ -93,7 +94,7 @@ class _UploadScreenState extends State {
       // STEP C: Confirm completion with the backend
       // Note: Make sure this uses the same IP address variable you set earlier
       await _dio.post(
-        'http://10.126.62.70:8787/videos/upload-complete', 
+        'http://${dotenv.env['API_URL']}/videos/upload-complete', 
         data: {'videoId': initResponse.data['videoId']},
       );
 
