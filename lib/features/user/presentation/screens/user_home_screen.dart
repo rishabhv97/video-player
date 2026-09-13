@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:video_player/video_player.dart';
 
-// Import your newly created Video Details Screen
 import '../../../../features/videos/presentation/screens/video_details_screen.dart';
 
 class VideoItem {
@@ -49,8 +48,8 @@ class _UserHomeScreenState extends State {
 
   Future _fetchFeed() async {
     try {
-      // Fetching the public feed from your Cloudflare API
-      final response = await _dio.get('http://192.168.1.20:8787/videos');
+      // IMPORTANT: Update this IP to your current hotspot IP!
+      final response = await _dio.get('http://10.126.62.70:8787/videos');
       final List data = response.data;
       setState(() {
         _videos = data.map((json) => VideoItem.fromJson(json)).toList();
@@ -67,55 +66,65 @@ class _UserHomeScreenState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Dark theme for immersive viewing
+      backgroundColor: Colors.grey[50], // Very light off-white background
       appBar: AppBar(
-        title: const Text('Discover', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
+        title: Text(
+          'Discover',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[800]),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        centerTitle: false,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.blue))
+          ? Center(child: CircularProgressIndicator(color: Colors.blue[600]))
           : _errorMessage.isNotEmpty
-              ? Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.white)))
+              ? Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.black87)))
               : ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
                   itemCount: _videos.length,
                   itemBuilder: (context, index) {
                     final video = _videos[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 24.0),
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      clipBehavior: Clip.antiAlias,
+                      color: Colors.white,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // User Profile / Header row
+                          // Header
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                            padding: const EdgeInsets.all(12.0),
                             child: Row(
                               children: [
                                 CircleAvatar(
-                                  backgroundColor: Colors.grey[800],
-                                  child: const Icon(Icons.person, color: Colors.white),
+                                  backgroundColor: Colors.blue[100],
+                                  child: Icon(Icons.person, color: Colors.blue[700]),
                                 ),
                                 const SizedBox(width: 12),
-                                Text(
-                                  video.title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Text(
+                                    video.title,
+                                    style: const TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           
-                          // Edge-to-edge Video Player
+                          // Video Player
                           AspectRatio(
                             aspectRatio: 16 / 9,
                             child: FeedVideoPlayer(videoUrl: video.videoUrl),
                           ),
                           
-                          // Description Text (Now Tappable to open Details Screen)
+                          // Details (Tappable)
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
@@ -130,22 +139,22 @@ class _UserHomeScreenState extends State {
                               );
                             },
                             child: Container(
-                              color: Colors.transparent, // Ensures the whole area is tappable
+                              color: Colors.transparent,
                               padding: const EdgeInsets.all(16.0),
                               width: double.infinity,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'View full details...',
-                                    style: TextStyle(color: Colors.blue[300], fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
                                     video.description,
-                                    maxLines: 2, // Truncates long text in the feed
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                                    style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Read more',
+                                    style: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
@@ -160,7 +169,6 @@ class _UserHomeScreenState extends State {
   }
 }
 
-// Custom Player Widget designed for the Feed
 class FeedVideoPlayer extends StatefulWidget {
   final String videoUrl;
   const FeedVideoPlayer({super.key, required this.videoUrl});
@@ -197,8 +205,8 @@ class _FeedVideoPlayerState extends State {
   Widget build(BuildContext context) {
     if (!_isInitialized) {
       return Container(
-        color: Colors.grey[900],
-        child: const Center(child: CircularProgressIndicator(color: Colors.grey)),
+        color: Colors.grey[200],
+        child: Center(child: CircularProgressIndicator(color: Colors.blue[400])),
       );
     }
 
@@ -215,11 +223,11 @@ class _FeedVideoPlayerState extends State {
           if (!_controller.value.isPlaying)
             Container(
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.white.withOpacity(0.7),
                 shape: BoxShape.circle,
               ),
               padding: const EdgeInsets.all(12),
-              child: const Icon(Icons.play_arrow, size: 40, color: Colors.white),
+              child: Icon(Icons.play_arrow, size: 40, color: Colors.blue[800]),
             ),
         ],
       ),

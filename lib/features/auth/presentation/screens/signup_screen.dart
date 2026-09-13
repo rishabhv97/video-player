@@ -1,41 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'signup_screen.dart';
 
-// Update these imports to match your project's exact paths if your IDE doesn't auto-import them
 import '../../../../features/admin/presentation/screens/admin_main_screen.dart';
 import '../../../../features/user/presentation/screens/user_main_screen.dart';
 import '../../../../features/super_admin/presentation/screens/super_admin_main_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State createState() => _LoginScreenState();
+  State createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State {
+class _SignupScreenState extends State {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   final Dio _dio = Dio();
   
   bool _isLoading = false;
   String _errorMessage = '';
   bool _obscurePassword = true;
 
-  Future _handleLogin() async {
+  Future _handleSignup() async {
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() => _errorMessage = 'Passwords do not match');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
 
     try {
+      // IMPORTANT: Update this to your active hotspot IP
       final response = await _dio.post(
-        'http://10.126.62.70:8787/auth/login',
+        'http://10.126.62.70:8787/auth/signup',
         data: {
           'email': _emailController.text.trim(),
           'password': _passwordController.text,
+          'role': 'user', 
         },
       );
 
@@ -44,7 +50,6 @@ class _LoginScreenState extends State {
       final String role = data['role'];
       final String id = data['id'];
 
-      // Save credentials locally
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('jwt_token', token);
       await prefs.setString('user_role', role);
@@ -52,14 +57,13 @@ class _LoginScreenState extends State {
 
       if (!mounted) return;
 
-      // Route the user based on their database role
       Widget nextScreen;
       switch (role.toLowerCase()) {
-        case 'admin':
-          nextScreen = const AdminMainScreen();
-          break;
         case 'super_admin':
           nextScreen = const SuperAdminMainScreen();
+          break;
+        case 'admin':
+          nextScreen = const AdminMainScreen();
           break;
         case 'user':
         default:
@@ -67,27 +71,26 @@ class _LoginScreenState extends State {
           break;
       }
 
-      // Navigate and remove the login screen from the back-history
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => nextScreen),
+        (route) => false,
       );
 
     } on DioException catch (e) {
       setState(() {
-        if (e.response?.statusCode == 401) {
-          _errorMessage = 'Invalid email or password';
+        if (e.response?.statusCode == 409) {
+          _errorMessage = 'An account with this email already exists.';
         } else {
-          _errorMessage = 'Connection error. Please try again.';
+          _errorMessage = 'Registration failed. Please try again.';
         }
       });
+      debugPrint('SIGNUP ERROR: $e');
     } catch (e) {
-      // Add this print statement!
-      print('LOGIN ERROR: $e'); 
-      
       setState(() {
         _errorMessage = 'An unexpected error occurred.';
       });
+      debugPrint('SIGNUP ERROR: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -99,12 +102,19 @@ class _LoginScreenState extends State {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.blue[800]),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -113,37 +123,52 @@ class _LoginScreenState extends State {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.video_library, size: 80, color: Colors.blue),
+                Icon(Icons.person_add_alt_1, size: 80, color: Colors.blue[600]),
                 const SizedBox(height: 24),
                 const Text(
-                  'Welcome Back',
+                  'Create Account',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Sign up to start watching',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 40),
                 
-                // Email Field
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
-                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.email_outlined, color: Colors.blue[600]),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 
-                // Password Field
                 TextField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock),
-                    border: const OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock_outline, color: Colors.blue[600]),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                    ),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.grey[600],
+                      ),
                       onPressed: () {
                         setState(() {
                           _obscurePassword = !_obscurePassword;
@@ -152,9 +177,23 @@ class _LoginScreenState extends State {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    prefixIcon: Icon(Icons.lock_reset, color: Colors.blue[600]),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 
-                // Error Message Display
                 if (_errorMessage.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
@@ -165,40 +204,22 @@ class _LoginScreenState extends State {
                     ),
                   ),
                 
-                // Login Button
                 SizedBox(
-                  height: 50,
+                  height: 54,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
+                    onPressed: _isLoading ? null : _handleSignup,
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[600],
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 2,
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Login', style: TextStyle(fontSize: 18)),
+                        : const Text('Sign Up', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                ),
-
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Don't have an account?", style: TextStyle(color: Colors.grey[600])),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SignupScreen()),
-                        );
-                      },
-                      child: Text(
-                        'Sign Up',
-                        style: TextStyle(color: Colors.blue[700], fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),

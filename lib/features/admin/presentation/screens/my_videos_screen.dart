@@ -46,7 +46,7 @@ class _MyVideosScreenState extends State {
 
   Future _fetchVideos() async {
     try {
-      final response = await _dio.get('http://192.168.1.20:8787/videos');
+      final response = await _dio.get('http://10.126.62.70:8787/videos');
       final List data = response.data;
       setState(() {
         _videos = data.map((json) => VideoItem.fromJson(json)).toList();

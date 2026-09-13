@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-// Import the screens that will act as our tabs
 import 'user_home_screen.dart';
+import 'user_history_screen.dart';
+import 'user_downloads_screen.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
 
 class UserMainScreen extends StatefulWidget {
@@ -14,10 +15,11 @@ class UserMainScreen extends StatefulWidget {
 class _UserMainScreenState extends State {
   int _selectedIndex = 0;
 
-  // The list of screens that the bottom nav will switch between
-  final List _screens = [
+  final List<Widget> _screens = [
     const UserHomeScreen(),
-    const ProfileScreen(), // We will build this fully in the next step
+    const UserHistoryScreen(),
+    const UserDownloadsScreen(),
+    const ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -29,23 +31,38 @@ class _UserMainScreenState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.white,
+        selectedItemColor: Colors.blue[700],
+        unselectedItemColor: Colors.grey[500],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        elevation: 10,
+        type: BottomNavigationBarType.fixed, // Keeps all 4 labels visible
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: 'Discover',
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.history_outlined),
+            activeIcon: Icon(Icons.history),
+            label: 'History',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.download_outlined),
+            activeIcon: Icon(Icons.download),
+            label: 'Downloads',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],

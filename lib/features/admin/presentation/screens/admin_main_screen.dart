@@ -16,7 +16,7 @@ class _AdminMainScreenState extends State {
   int _selectedIndex = 0;
 
   // The list of screens that the bottom nav will switch between
-  final List _screens = [
+  final List<Widget> _screens = [
     const MyVideosScreen(),
     const UploadScreen(),
     const ProfileScreen(),
@@ -31,10 +31,7 @@ class _AdminMainScreenState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.black,
         selectedItemColor: Colors.blue,
@@ -46,14 +43,8 @@ class _AdminMainScreenState extends State {
             icon: Icon(Icons.video_library),
             label: 'My Videos',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.upload),
-            label: 'Upload',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.upload), label: 'Upload'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

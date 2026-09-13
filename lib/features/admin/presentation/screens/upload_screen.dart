@@ -93,7 +93,7 @@ class _UploadScreenState extends State {
       // STEP C: Confirm completion with the backend
       // Note: Make sure this uses the same IP address variable you set earlier
       await _dio.post(
-        'http://192.168.1.20:8787/videos/upload-complete', 
+        'http://10.126.62.70:8787/videos/upload-complete', 
         data: {'videoId': initResponse.data['videoId']},
       );
 
