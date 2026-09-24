@@ -37,19 +37,31 @@ class _UserHistoryScreenState extends State {
         return;
       }
 
-      // FIXED: Clean string interpolation with double quotes and $ symbols
-      final response = await _dio.get("\(${dotenv.env['API_URL']}/history/\)userId");
+      final url = "${dotenv.env['API_URL']}/history/$userId";
+      
+      final response = await _dio.get(url);
       
       setState(() {
         _historyItems = response.data;
         _isLoading = false;
       });
-    } catch (e) {
+    } on DioException catch (e) {
       setState(() {
-        _errorMessage = 'Could not load history.';
+        if (e.response != null) {
+          // Captures backend errors (like a 500 from Supabase)
+          _errorMessage = 'Server Error (\({e.response?.statusCode}):\){e.response?.data}';
+        } else {
+          // Captures network routing issues
+          _errorMessage = 'Network Error: Cannot reach server.';
+        }
         _isLoading = false;
       });
-      debugPrint('History fetch error: $e');
+    } catch (e) {
+      setState(() {
+        // Captures Dart syntax or parsing errors
+        _errorMessage = 'App Error: $e';
+        _isLoading = false;
+      });
     }
   }
 
