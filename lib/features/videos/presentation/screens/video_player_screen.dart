@@ -18,16 +18,36 @@ class VideoPlayerScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.play_circle_outline, color: Colors.white54, size: 100),
-            const SizedBox(height: 16),
-            const Text(
-              'Video Player Placeholder',
-              style: TextStyle(color: Colors.white, fontSize: 18),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.play_circle_filled_rounded,
+                color: Colors.white70,
+                size: 80,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 24),
+            const Text(
+              'Player Coming Soon',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
             Text(
-              'HLS playback will be implemented in Phase 6/7',
-              style: TextStyle(color: Colors.white.withOpacity(0.7)),
+              'Advanced HLS playback will be implemented\nin a future update.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 15,
+                height: 1.5,
+              ),
             ),
           ],
         ),

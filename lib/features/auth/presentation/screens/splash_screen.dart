@@ -55,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Icon(Icons.movie_creation, color: Colors.white, size: 80),
             SizedBox(height: 16),
             Text(
-              'Cinematic',
+              'RubixPlayer',
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             Text(

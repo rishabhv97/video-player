@@ -9,16 +9,16 @@ void main() async {
   // Required for initializing async plugins (like flutter_secure_storage later) before runApp
   WidgetsFlutterBinding.ensureInitialized();
   
-  runApp(const CinematicApp());
+  runApp(const RubixPlayerApp());
 }
 
-class CinematicApp extends StatelessWidget {
-  const CinematicApp({super.key});
+class RubixPlayerApp extends StatelessWidget {
+  const RubixPlayerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Cinematic',
+      title: 'RubixPlayer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),

@@ -1,4 +1,4 @@
-package com.example.cinematic_app
+package com.example.rubixplayer
 
 import io.flutter.embedding.android.FlutterActivity
 
