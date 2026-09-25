@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/widgets/custom_app_bar.dart';
+import 'package:rubixplayer/shared/widgets/custom_app_bar.dart';
 
 class UserLinkScreen extends StatelessWidget {
   const UserLinkScreen({super.key});
@@ -7,7 +7,7 @@ class UserLinkScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(),
+      appBar: RubixAppBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -48,8 +48,8 @@ class UserLinkScreen extends StatelessWidget {
                   ),
                   TextButton.icon(
                     onPressed: () {},
-                    icon: const Icon(Icons.content_paste, size: 16, color: Color(0xFF4C44CF)),
-                    label: const Text('Paste', style: TextStyle(color: Color(0xFF4C44CF))),
+                    icon: const Icon(Icons.content_paste, size: 16, color: Color(0xFFFF6B00)),
+                    label: const Text('Paste', style: TextStyle(color: Color(0xFFFF6B00))),
                     style: TextButton.styleFrom(
                       backgroundColor: const Color(0xFFF0F0FA),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -98,7 +98,7 @@ class UserLinkScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(color: const Color(0xFFF0F0FA), borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.link, color: Color(0xFF4C44CF)),
+                    child: const Icon(Icons.link, color: Color(0xFFFF6B00)),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -114,7 +114,7 @@ class UserLinkScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(color: const Color(0xFFF0F0FA), borderRadius: BorderRadius.circular(20)),
-                    child: const Text('Re-open', style: TextStyle(color: Color(0xFF4C44CF), fontWeight: FontWeight.bold, fontSize: 12)),
+                    child: const Text('Re-open', style: TextStyle(color: Color(0xFFFF6B00), fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                 ],
               ),

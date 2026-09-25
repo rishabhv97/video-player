@@ -78,16 +78,61 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString('user_id');
+      String? userId = prefs.getString('id') ?? prefs.getString('userId') ?? prefs.getString('user_id');
 
       if (userId != null) {
         await _dio.post(
           '${dotenv.env['API_URL']}/history/log',
           data: {'userId': userId, 'videoId': widget.videoId},
         );
+      } else {
+        // Guest mode local history
+        final String? existingData = prefs.getString('guest_history');
+        List<dynamic> historyList = existingData != null ? jsonDecode(existingData) : [];
+        
+        // Remove if exists to put it at the top
+        historyList.removeWhere((item) => item['id'] == widget.videoId);
+        
+        historyList.insert(0, {
+          'id': widget.videoId,
+          'title': widget.title,
+          'description': widget.description,
+          'videoUrl': widget.videoUrl,
+          'viewed_at': DateTime.now().toIso8601String(),
+        });
+        
+        if (historyList.length > 15) historyList = historyList.sublist(0, 15);
+        await prefs.setString('guest_history', jsonEncode(historyList));
       }
     } catch (e) {
       debugPrint('Failed to log history: $e');
+    }
+  }
+
+  void _saveProgress() {
+    if (!_isInitialized) return;
+    
+    final position = _controller.value.position.inSeconds;
+    final duration = _controller.value.duration.inSeconds;
+    
+    // Only save if watched more than 5 seconds and not fully completed
+    if (position > 5 && position < duration - 5) {
+      SharedPreferences.getInstance().then((prefs) {
+        final data = {
+          'id': widget.videoId,
+          'title': widget.title,
+          'description': widget.description,
+          'videoUrl': widget.videoUrl,
+          'position': position,
+          'duration': duration,
+        };
+        prefs.setString('last_played_video', jsonEncode(data));
+      });
+    } else if (position >= duration - 5) {
+      // Clear if finished
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.remove('last_played_video');
+      });
     }
   }
 
@@ -231,6 +276,7 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
 
   @override
   void dispose() {
+    _saveProgress();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,

@@ -2,26 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../features/auth/presentation/screens/login_screen.dart';
 import 'super_admin_dashboard.dart';
-import 'manage_admins_screen.dart';
 import 'users_management_screen.dart';
 
 class SuperAdminMainScreen extends StatefulWidget {
   const SuperAdminMainScreen({super.key});
 
   @override
-  State createState() => _SuperAdminMainScreenState();
+  State<SuperAdminMainScreen> createState() => _SuperAdminMainScreenState();
 }
 
-class _SuperAdminMainScreenState extends State {
+class _SuperAdminMainScreenState extends State<SuperAdminMainScreen> {
   int _currentIndex = 0;
 
-  final List _screens = [
+  final List<Widget> _screens = [
     const SuperAdminDashboard(),
     const UsersManagementScreen(),
-    const ManageAdminsScreen(),
   ];
 
-  Future _logout() async {
+  Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     if (mounted) {
@@ -58,8 +56,7 @@ class _SuperAdminMainScreenState extends State {
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_alt_rounded), label: 'Users'),
-          BottomNavigationBarItem(icon: Icon(Icons.security_rounded), label: 'Admins'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_alt_rounded), label: 'Users & Admins'),
         ],
       ),
     );

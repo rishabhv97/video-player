@@ -114,7 +114,7 @@ class _LoginScreenState extends State {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.video_library, size: 80, color: Colors.blue),
+                const Icon(Icons.video_library, size: 80, color: Colors.orange),
                 const SizedBox(height: 24),
                 const Text(
                   'Welcome Back',
@@ -196,7 +196,7 @@ class _LoginScreenState extends State {
                       },
                       child: Text(
                         'Sign Up',
-                        style: TextStyle(color: Colors.blue[700], fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Colors.orange[700], fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],

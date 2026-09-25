@@ -1,74 +1,94 @@
 import 'package:flutter/material.dart';
+import 'package:rubixplayer/features/profile/presentation/screens/profile_screen.dart';
 
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final bool showSearch;
+class RubixAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final List<Widget>? actions;
   final bool showProfile;
 
-  const CustomAppBar({
+  RubixAppBar({
     super.key,
-    this.showSearch = true,
+    this.actions,
     this.showProfile = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        color: Colors.white,
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF4C44CF),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.movie_creation, color: Colors.white),
+    return AppBar(
+      backgroundColor: Colors.grey[50],
+      elevation: 0,
+      titleSpacing: 16,
+      toolbarHeight: 70,
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF6B00),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 12),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'RubixPlayer',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-                Text(
-                  'STREAM & LINKS',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF4C44CF), letterSpacing: 1.2),
-                ),
-              ],
+            child: const Icon(
+              Icons.grid_view_rounded,
+              color: Colors.white,
+              size: 24,
             ),
-            const Spacer(),
-            if (showSearch)
-              Container(
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.search, color: Colors.grey),
-                  onPressed: () {},
-                  constraints: const BoxConstraints(),
-                  padding: const EdgeInsets.all(8),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Rubix Player',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 20,
+                  color: Color(0xFF1E1E2C),
+                  letterSpacing: -0.5,
                 ),
               ),
-            if (showProfile)
-              const CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.grey,
-                child: Icon(Icons.person, color: Colors.white),
+              Text(
+                'STREAM & LINKS',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 10,
+                  letterSpacing: 1.2,
+                  color: const Color(0xFFFF6B00),
+                ),
               ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
+      actions: [
+        if (actions != null) ...actions!,
+        if (actions != null && actions!.isNotEmpty) const SizedBox(width: 12),
+        if (showProfile)
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileScreen(),
+                ),
+              );
+            },
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: NetworkImage('https://ui-avatars.com/api/?name=User&background=C7D2FE&color=3730A3&bold=true'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+        const SizedBox(width: 16),
+      ],
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(60.0);
+  Size get preferredSize => const Size.fromHeight(70.0);
 }

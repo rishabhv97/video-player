@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:rubixplayer/shared/widgets/custom_app_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../features/videos/presentation/screens/video_details_screen.dart';
@@ -61,17 +62,9 @@ class _UserDownloadsScreenState extends State {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text(
-          'Offline Downloads',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[800]),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        centerTitle: false,
-      ),
+      appBar: RubixAppBar(),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: Colors.blue[600]))
+          ? Center(child: CircularProgressIndicator(color: Colors.orange[600]))
           : _downloadedVideos.isEmpty
               ? Center(
                   child: Column(
@@ -83,42 +76,46 @@ class _UserDownloadsScreenState extends State {
                     ],
                   ),
                 )
-              : ListView.builder(
-                  itemCount: _downloadedVideos.length,
-                  itemBuilder: (context, index) {
-                    final video = _downloadedVideos[index];
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      leading: Container(
-                        width: 80,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.blue[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(Icons.offline_pin_rounded, color: Colors.blue[600]),
-                      ),
-                      title: Text(video['title'] ?? 'Untitled', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: const Text('Available offline'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () => _deleteVideo(video['id'], video['localPath']),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => VideoDetailsScreen(
-                              videoId: video['id'],
-                              videoUrl: video['localPath'], // We pass the LOCAL path here!
-                              title: video['title'],
-                              description: video['description'],
-                            ),
+              : RefreshIndicator(
+                  onRefresh: _loadDownloads,
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: _downloadedVideos.length,
+                    itemBuilder: (context, index) {
+                      final video = _downloadedVideos[index];
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        leading: Container(
+                          width: 80,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.orange[100],
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        );
-                      },
-                    );
-                  },
+                          child: Icon(Icons.offline_pin_rounded, color: Colors.orange[600]),
+                        ),
+                        title: Text(video['title'] ?? 'Untitled', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: const Text('Available offline'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          onPressed: () => _deleteVideo(video['id'], video['localPath']),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VideoDetailsScreen(
+                                videoId: video['id'],
+                                videoUrl: video['localPath'], // We pass the LOCAL path here!
+                                title: video['title'],
+                                description: video['description'],
+                              ),
+                            ),
+                          ).then((_) => _loadDownloads()); // Refresh after returning
+                        },
+                      );
+                    },
+                  ),
                 ),
     );
   }

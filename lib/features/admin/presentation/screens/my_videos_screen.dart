@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rubixplayer/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:video_player/video_player.dart';
@@ -155,7 +156,7 @@ class _MyVideosScreenState extends State<MyVideosScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Share link copied to clipboard!'),
-          backgroundColor: Colors.blue[600],
+          backgroundColor: Colors.orange[600],
         ),
       );
     }
@@ -282,12 +283,7 @@ class _MyVideosScreenState extends State<MyVideosScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text('My Videos', style: TextStyle(color: Colors.black87)),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black87),
-      ),
+      appBar: RubixAppBar(),
       body: _videos.isEmpty
           ? const Center(child: Text('You have no uploaded videos.'))
           : RefreshIndicator(
@@ -343,7 +339,7 @@ class _MyVideosScreenState extends State<MyVideosScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.share, color: Colors.blue),
+                                    icon: const Icon(Icons.share, color: Colors.orange),
                                     onPressed: () => _shareVideo(video.id),
                                     tooltip: 'Copy Link',
                                   ),

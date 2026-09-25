@@ -4,7 +4,7 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF4C44CF),
+        seedColor: const Color(0xFFFF6B00),
         surface: const Color(0xFFFFFFFF),
       ),
       scaffoldBackgroundColor: const Color(0xFFF9FAFD),

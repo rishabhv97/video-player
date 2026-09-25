@@ -32,13 +32,10 @@ class _UserMainScreenState extends State {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+      body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
-        selectedItemColor: Colors.blue[700],
+        selectedItemColor: Colors.orange[700],
         unselectedItemColor: Colors.grey[500],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,

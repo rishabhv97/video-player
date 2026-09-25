@@ -6,12 +6,13 @@ class SuperAdminDashboard extends StatefulWidget {
   const SuperAdminDashboard({super.key});
 
   @override
-  State createState() => _SuperAdminDashboardState();
+  State<SuperAdminDashboard> createState() => _SuperAdminDashboardState();
 }
 
-class _SuperAdminDashboardState extends State {
+class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
   final Dio _dio = Dio();
   bool _isLoading = true;
+  String _errorMessage = '';
   
   // Dashboard Metrics
   int _totalUsers = 0;
@@ -25,26 +26,35 @@ class _SuperAdminDashboardState extends State {
     _fetchPlatformStats();
   }
 
-  Future _fetchPlatformStats() async {
+  Future<void> _fetchPlatformStats() async {
     try {
-      final String baseUrl = dotenv.env['API_URL'] ?? '';
+      String baseUrl = dotenv.env['API_URL'] ?? '';
+      if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+      }
       
-      // We will build this endpoint in Cloudflare next
-      // final response = await _dio.get('$baseUrl/admin/stats');
+      final response = await _dio.get('$baseUrl/superadmin/stats');
       
-      // Mocking the delay for now until the backend is ready
-      await Future.delayed(const Duration(milliseconds: 800));
+      final data = response.data;
 
-      setState(() {
-        _totalUsers = 142;
-        _totalAdmins = 4;
-        _totalVideos = 89;
-        _totalViews = 12450;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _totalUsers = data['totalUsers'] ?? 0;
+          _totalAdmins = data['totalAdmins'] ?? 0;
+          _totalVideos = data['totalVideos'] ?? 0;
+          _totalViews = data['totalViews'] ?? 0;
+          _isLoading = false;
+          _errorMessage = '';
+        });
+      }
     } catch (e) {
       debugPrint('Error fetching stats: $e');
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Failed to load stats. Ensure backend is updated.';
+        });
+      }
     }
   }
 
@@ -66,7 +76,15 @@ class _SuperAdminDashboardState extends State {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title, style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w600)),
+                Expanded(
+                  child: Text(
+                    title, 
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 4),
                 Icon(icon, color: color, size: 28),
               ],
             ),
@@ -83,6 +101,7 @@ class _SuperAdminDashboardState extends State {
 
   @override
   Widget build(BuildContext context) {
+    // Removed the CustomAppBar since SuperAdminMainScreen already has an AppBar
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: _isLoading
@@ -90,8 +109,17 @@ class _SuperAdminDashboardState extends State {
           : RefreshIndicator(
               onRefresh: _fetchPlatformStats,
               child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(20.0),
                 children: [
+                  if (_errorMessage.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        _errorMessage,
+                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   Text(
                     'Platform Overview',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueGrey[900]),
@@ -105,7 +133,7 @@ class _SuperAdminDashboardState extends State {
                     physics: const NeverScrollableScrollPhysics(),
                     childAspectRatio: 1.1,
                     children: [
-                      _buildStatCard('Total Users', _totalUsers.toString(), Icons.people_outline, Colors.blue),
+                      _buildStatCard('Total Users', _totalUsers.toString(), Icons.people_outline, Colors.orange),
                       _buildStatCard('Total Admins', _totalAdmins.toString(), Icons.admin_panel_settings_outlined, Colors.purple),
                       _buildStatCard('Total Videos', _totalVideos.toString(), Icons.video_library_outlined, Colors.orange),
                       _buildStatCard('Total Views', _totalViews.toString(), Icons.remove_red_eye_outlined, Colors.teal),

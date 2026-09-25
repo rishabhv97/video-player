@@ -114,7 +114,7 @@ class _SignupScreenState extends State {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.blue[800]),
+        iconTheme: IconThemeData(color: Colors.orange[800]),
       ),
       body: SafeArea(
         child: Center(
@@ -124,7 +124,7 @@ class _SignupScreenState extends State {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(Icons.person_add_alt_1, size: 80, color: Colors.blue[600]),
+                Icon(Icons.person_add_alt_1, size: 80, color: Colors.orange[600]),
                 const SizedBox(height: 24),
                 const Text(
                   'Create Account',
@@ -144,11 +144,11 @@ class _SignupScreenState extends State {
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined, color: Colors.blue[600]),
+                    prefixIcon: Icon(Icons.email_outlined, color: Colors.orange[600]),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                      borderSide: BorderSide(color: Colors.orange[600]!, width: 2),
                     ),
                   ),
                 ),
@@ -159,11 +159,11 @@ class _SignupScreenState extends State {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outline, color: Colors.blue[600]),
+                    prefixIcon: Icon(Icons.lock_outline, color: Colors.orange[600]),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                      borderSide: BorderSide(color: Colors.orange[600]!, width: 2),
                     ),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -185,11 +185,11 @@ class _SignupScreenState extends State {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
-                    prefixIcon: Icon(Icons.lock_reset, color: Colors.blue[600]),
+                    prefixIcon: Icon(Icons.lock_reset, color: Colors.orange[600]),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                      borderSide: BorderSide(color: Colors.orange[600]!, width: 2),
                     ),
                   ),
                 ),
@@ -210,7 +210,7 @@ class _SignupScreenState extends State {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleSignup,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[600],
+                      backgroundColor: Colors.orange[600],
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
