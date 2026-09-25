@@ -8,14 +8,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class UploadScreen extends StatefulWidget {
   const UploadScreen({
     super.key,
-  }); // FIX: Added named key parameter. This fixes the admin_main_screen error!
+  }); 
 
   @override
-  State createState() => _UploadScreenState(); // FIX: Removed private type warning
+  State<UploadScreen> createState() => _UploadScreenState();
 }
 
-class _UploadScreenState extends State {
-  // FIX: Added
+class _UploadScreenState extends State<UploadScreen> {
   final Dio _dio = Dio();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
@@ -24,7 +23,17 @@ class _UploadScreenState extends State {
   String _statusMessage = 'Ready to upload';
   bool _isUploading = false;
 
- Future pickVideo() async {
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descController.dispose();
+    super.dispose();
+  }
+
+  Future<void> pickVideo() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.video,
     );
@@ -37,8 +46,15 @@ class _UploadScreenState extends State {
     }
   }
 
-  Future startUpload() async {
+  Future<void> startUpload() async {
     if (_selectedFile == null) return;
+
+    if (_titleController.text.trim().isEmpty) {
+      setState(() {
+        _statusMessage = 'Please enter a video title first.';
+      });
+      return;
+    }
 
     setState(() {
       _isUploading = true;
@@ -50,14 +66,13 @@ class _UploadScreenState extends State {
       String? adminId = await _storage.read(key: 'user_id');
       String fileName = _selectedFile!.path.split('/').last;
 
-      // Replace with your computer's actual local IP address (e.g., 192.168.1.X)
-      final String apiUrl = 'http://${dotenv.env['API_URL']}/videos/upload-init';
+      final String apiUrl = '${dotenv.env['API_URL']}/videos/upload-init';
 
       final initResponse = await _dio.post(
         apiUrl,
         data: {
-          'title': 'New Video Upload',
-          'description': 'Uploaded via Admin App',
+          'title': _titleController.text.trim(),
+          'description': _descController.text.trim().isEmpty ? 'No description provided.' : _descController.text.trim(),
           'originalFilename': fileName,
           'mimeType': 'video/mp4',
           'adminId': adminId ?? '0acc5266-ebfc-4f9d-9368-8d29cbfcb4df',
@@ -70,7 +85,6 @@ class _UploadScreenState extends State {
         _statusMessage = 'Uploading to Cloudflare R2...';
       });
 
-      // STEP B: Upload the raw binary file directly to Cloudflare R2
       await _dio.put(
         uploadUrl,
         data: _selectedFile!.openRead(), 
@@ -81,9 +95,11 @@ class _UploadScreenState extends State {
           },
         ),
         onSendProgress: (int sent, int total) {
-          setState(() {
-            _uploadProgress = sent / total;
-          });
+          if (total != -1) {
+            setState(() {
+              _uploadProgress = sent / total;
+            });
+          }
         },
       );
 
@@ -91,26 +107,24 @@ class _UploadScreenState extends State {
         _statusMessage = 'Finalizing database record...';
       });
 
-      // STEP C: Confirm completion with the backend
-      // Note: Make sure this uses the same IP address variable you set earlier
       await _dio.post(
-        'http://${dotenv.env['API_URL']}/videos/upload-complete', 
+        '${dotenv.env['API_URL']}/videos/upload-complete', 
         data: {'videoId': initResponse.data['videoId']},
       );
-
-      
 
       setState(() {
         _statusMessage = 'Upload Complete! Video is now READY.';
         _isUploading = false;
         _selectedFile = null;
+        _titleController.clear();
+        _descController.clear();
       });
     } catch (e) {
       setState(() {
         _statusMessage = 'Upload Failed: ${e.toString()}';
         _isUploading = false;
       });
-      debugPrint(e.toString()); // FIX: Replaced print() with debugPrint()
+      debugPrint(e.toString()); 
     }
   }
 
@@ -118,38 +132,68 @@ class _UploadScreenState extends State {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Upload Video')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              _statusMessage,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-
-            if (_isUploading) ...[
-              LinearProgressIndicator(value: _uploadProgress),
-              const SizedBox(height: 12),
-              Text('${(_uploadProgress * 100).toStringAsFixed(1)}%'),
-            ] else ...[
-              ElevatedButton.icon(
-                icon: const Icon(Icons.video_file),
-                label: const Text('Select Video'),
-                onPressed: pickVideo,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Video Title',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.title),
+                ),
+                enabled: !_isUploading,
               ),
               const SizedBox(height: 16),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.cloud_upload),
-                label: const Text('Start Upload'),
-                onPressed: _selectedFile == null ? null : startUpload,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              TextField(
+                controller: _descController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Video Description (Optional)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.description),
+                ),
+                enabled: !_isUploading,
               ),
+              const SizedBox(height: 24),
+              
+              Text(
+                _statusMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 24),
+
+              if (_isUploading) ...[
+                LinearProgressIndicator(value: _uploadProgress),
+                const SizedBox(height: 12),
+                Text(
+                  '${(_uploadProgress * 100).toStringAsFixed(1)}%',
+                  textAlign: TextAlign.center,
+                ),
+              ] else ...[
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.video_file),
+                  label: const Text('Select Video'),
+                  onPressed: pickVideo,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.cloud_upload),
+                  label: const Text('Start Upload'),
+                  onPressed: _selectedFile == null ? null : startUpload,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
